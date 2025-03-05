@@ -8,15 +8,20 @@ using namespace std;
 */
 template<typename T>
 void selectionSort(vector<T>& vec){
-    auto future =  async([&](){
-        for (auto it = vec.begin(); it < vec.end()-1; ++it){
-            auto minIt = it;
+    for (auto it = vec.begin(); it < vec.end()-1; ++it){
+        promise<typename vector<T>::iterator> pr;
+        auto future = pr.get_future();
+        auto minIt = it;
+
+        auto res= async([&](){
             for (auto it2 = it + 1; it2 <vec.end(); ++it2)
                 if ((*it2) <(*minIt)) minIt = it2;
-            if (minIt != it)
-                swap((*it), *(minIt));
-        }
-    });
+            pr.set_value(minIt);
+        });
+        future.get();
+        if (minIt != it)
+            swap((*it), *(minIt));
+    }
 }
 
 void fillVector( std::vector<int>& v){
@@ -38,13 +43,8 @@ int main( int argc, char** argv){
 
     selectionSort(vec);
 
-    promise<vector<int>> pr;
-    pr.set_value(vec);
-    auto future = pr.get_future();
-
     cout<< "after  v1: ";
-    for( auto& v: future.get()) cout<< v<< ' ';
+    for( auto& v: vec) cout<< v<< ' ';
     cout<< endl;
-
     return 0;
 }

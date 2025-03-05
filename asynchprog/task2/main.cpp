@@ -10,20 +10,24 @@ using namespace std;
 template<typename Iter,typename T>
 void paraForEach(Iter begin, Iter end, T t){
     size_t size= distance(t.begin(), t.end());
-    if(!size) return;
-    if(size==1) return;
+    if(size<=1) return;
     Iter middle= begin;
-    advance(middle, size/2);
-    std::future<void> ft = std::async(&paraForEach<Iter, T>,begin,middle,t);
-    try{
-        auto half = async(paraForEach< Iter, T>, begin, middle, std::ref(t));
+    if(size< 10){
         for_each( std::execution::par, middle, end, [&](int& i){ cout<< ++i<< ' ';});
-    } catch(...){
-        ft.wait();
-        cerr<< __func__<< endl<< flush;
-        throw;
+    } else{
+        advance(middle, size/2);
+        std::future<void> ft = std::async(&paraForEach<Iter, T>,begin,middle,t);
+        try{
+            cout<< *middle<< ' ';
+            auto half = async(paraForEach< Iter, T>, begin, middle, std::ref(t));
+            paraForEach(middle, end, t);
+        } catch(...){
+            ft.wait();
+            cerr<< __func__<< endl<< flush;
+            throw;
+        }
+        ft.get();
     }
-    ft.get();
 }
 
 void fillVector( std::vector<int>& v){
@@ -37,7 +41,7 @@ void fillVector( std::vector<int>& v){
 //////////////////////////////////
 int main( int argc, char** argv){
     cout << "Hello World!" << endl;
-    std::vector <int> vec(4);
+    std::vector <int> vec(16);
     fillVector(vec);
 
     cout<< "before v1: ";
