@@ -18,7 +18,7 @@ void selectionSort(vector<T>& vec){
                 if ((*it2) <(*minIt)) minIt = it2;
             pr.set_value(minIt);
         });
-        future.get();
+        minIt= future.get();
         if (minIt != it)
             swap((*it), *(minIt));
     }
